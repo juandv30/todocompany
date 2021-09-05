@@ -18,39 +18,85 @@ namespace todocompany.Functions.Functions
     {
         [FunctionName(nameof(ConsolidateProcess))]
         public static async Task<IActionResult> ConsolidateProcess(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "company")] HttpRequest req,
-            [Table("company", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "consolidated")] HttpRequest req,
+            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
             ILogger log)
         {
             log.LogInformation("recieved process for consolidated");
 
-            string name = req.Query["name"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             Entry entry = JsonConvert.DeserializeObject<Entry>(requestBody);
 
-            if (string.IsNullOrEmpty(entry?.TaskDescription))
+            if (string.IsNullOrEmpty(entry?.EmployedId))
             {
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "The request must have a TaskDescription."
+                    Message = "The request must have a Employed ID."
                 });
             }
             TodoEntity todoEntity = new TodoEntity
             {
-                CreatedTime = DateTime.UtcNow,
+                Date = DateTime.UtcNow,
                 ETag = "*",
-                IsConsolidated = false,
+               IsConsolidated = false,
                 PartitionKey = "ENTRY",
                 RowKey = Guid.NewGuid().ToString(),
-                TaskDescription = entry.TaskDescription
+                Type = entry.Type,
+                EmployedId = entry.EmployedId
             };
 
             TableOperation addOperation = TableOperation.Insert(todoEntity);
-            await companyTable.ExecuteAsync(addOperation);
+            await consolidatedTable.ExecuteAsync(addOperation);
 
             string message = "New proccess consolidate in the table";
+            log.LogInformation(message);
+
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = todoEntity
+            });
+        }
+        
+        
+        [FunctionName(nameof(CreateTime))]
+        public static async Task<IActionResult> CreateTime(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "time")] HttpRequest req,
+            [Table("time", Connection = "AzureWebJobsStorage")] CloudTable timeTable,
+            ILogger log)
+        {
+            log.LogInformation("Time recieved");
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            Entry entry = JsonConvert.DeserializeObject<Entry>(requestBody);
+
+            if (string.IsNullOrEmpty(entry?.EmployedId))
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must have a Employed ID."
+                });
+            }
+            TodoEntity todoEntity = new TodoEntity
+            {
+                Date = DateTime.UtcNow,
+                ETag = "*",
+                IsConsolidated = false,
+                PartitionKey = "ENTRY",
+                RowKey = Guid.NewGuid().ToString(),               
+                Type = entry.Type,
+                EmployedId = entry.EmployedId
+            };
+
+            TableOperation addOperation = TableOperation.Insert(todoEntity);
+            await timeTable.ExecuteAsync(addOperation);
+
+            string message = "New time consolidate in the table";
             log.LogInformation(message);
 
 
