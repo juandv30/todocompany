@@ -8,6 +8,6 @@ namespace todocompany.Common.Models
 
         public string TaskDescription { get; set; }
 
-        public bool IsCompleted { get; set; }
+        public bool IsConsolidated { get; set; }
     }
 }

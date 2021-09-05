@@ -9,6 +9,6 @@ namespace todocompany.Functions.Entities
 
         public string TaskDescription { get; set; }
 
-        public bool IsCompleted { get; set; }
+        public bool IsConsolidated { get; set; }
     }
 }
