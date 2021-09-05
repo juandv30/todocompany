@@ -111,7 +111,7 @@ namespace todocompany.Functions.Functions
 
         [FunctionName(nameof(UpdateTime))]
         public static async Task<IActionResult> UpdateTime(
-                       [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "time/{id}")] HttpRequest req,
+                       [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time/{id}")] HttpRequest req,
                        [Table("time", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
                        string id,
                        ILogger log)
@@ -153,6 +153,30 @@ namespace todocompany.Functions.Functions
                 IsSuccess = true,
                 Message = message,
                 Result = todoEntity
+            });
+        }
+
+
+        [FunctionName(nameof(GetAllTimes))]
+        public static async Task<IActionResult> GetAllTimes(
+                  [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time")] HttpRequest req,
+                  [Table("time", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
+                  ILogger log)
+        {
+            log.LogInformation("Get all times recieved");
+
+            TableQuery<TodoEntity> query = new TableQuery<TodoEntity>();
+            TableQuerySegment<TodoEntity> entrys = await companyTable.ExecuteQuerySegmentedAsync(query, null);
+
+            string message = "Retrieved all times";
+            log.LogInformation(message);
+
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = entrys
             });
         }
     }
