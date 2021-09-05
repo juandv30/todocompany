@@ -111,7 +111,7 @@ namespace todocompany.Functions.Functions
 
         [FunctionName(nameof(UpdateTime))]
         public static async Task<IActionResult> UpdateTime(
-                       [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time/{id}")] HttpRequest req,
+                       [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "time/{id}")] HttpRequest req,
                        [Table("time", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
                        string id,
                        ILogger log)
@@ -156,7 +156,6 @@ namespace todocompany.Functions.Functions
             });
         }
 
-
         [FunctionName(nameof(GetAllTimes))]
         public static async Task<IActionResult> GetAllTimes(
                   [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time")] HttpRequest req,
@@ -177,6 +176,36 @@ namespace todocompany.Functions.Functions
                 IsSuccess = true,
                 Message = message,
                 Result = entrys
+            });
+        }
+
+        [FunctionName(nameof(GetTimeById))]
+        public static IActionResult GetTimeById(
+                    [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time/{id}")] HttpRequest req,
+                    [Table("time","ENTRY", "{id}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
+                    string id,
+                    ILogger log)
+        {
+            log.LogInformation($"Get times by id: {id}, recieved.");
+
+            if (todoEntity == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "Employed id not found."
+                });
+            }
+
+            string message = $"Entry: {todoEntity.RowKey}, retrieved.";
+            log.LogInformation(message);
+
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = todoEntity
             });
         }
     }
