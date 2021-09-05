@@ -124,7 +124,7 @@ namespace todocompany.Functions.Functions
             //validate employed id
             TableOperation findOperation = TableOperation.Retrieve<TodoEntity>("ENTRY", id);
             TableResult findResult = await companyTable.ExecuteAsync(findOperation);
-            if (findResult == null)
+            if (findResult.Result == null)
             {
                 return new BadRequestObjectResult(new Response
                 {
