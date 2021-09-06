@@ -208,5 +208,69 @@ namespace todocompany.Functions.Functions
                 Result = todoEntity
             });
         }
+
+
+        [FunctionName(nameof(GetAllConsolidatesByDate))]
+        public static IActionResult GetAllConsolidatesByDate(
+                      [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated/{date}")] HttpRequest req,
+                      [Table("consolidated", "ENTRY", "{date}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
+                      string date,
+                      ILogger log)
+        {
+            log.LogInformation($"Get all consolidated by date: {date}, recieved.");
+
+            if (todoEntity == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "Date is not found."
+                });
+            }
+
+            string message = $"Entry: {todoEntity.Timestamp}, retrieved.";
+            log.LogInformation(message);
+
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = todoEntity
+            });
+        }
+
+
+        [FunctionName(nameof(DeleteTime))]
+        public static async Task<IActionResult> DeleteTime(
+                       [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "time/{id}")] HttpRequest req,
+                       [Table("time", "ENTRY", "{id}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
+                        [Table("time", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
+                       string id,
+                       ILogger log)
+        {
+            log.LogInformation($"Delete entry employed {id}, received.");
+
+            if (todoEntity == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "Employed not found."
+                });
+            }
+
+            await companyTable.ExecuteAsync(TableOperation.Delete(todoEntity));
+            string message = $"Entry: {todoEntity.RowKey}, deleted.";
+            log.LogInformation(message);
+
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = todoEntity
+            });
+        }
     }
 }
