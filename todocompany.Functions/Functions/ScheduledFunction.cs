@@ -13,6 +13,8 @@ namespace todocompany.Functions.Functions
         public static async Task Run(
             [TimerTrigger("0 */1 * * * *")] TimerInfo myTimer,
             [Table("time", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
+            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
+
 
             ILogger log)
         {

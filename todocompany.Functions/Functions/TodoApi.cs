@@ -19,7 +19,7 @@ namespace todocompany.Functions.Functions
         [FunctionName(nameof(ConsolidateProcess))]
         public static async Task<IActionResult> ConsolidateProcess(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "consolidated")] HttpRequest req,
-            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable companyTable,
+            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
             ILogger log)
         {
             log.LogInformation("recieved process for consolidated");
@@ -40,7 +40,7 @@ namespace todocompany.Functions.Functions
             {
                 Date = DateTime.UtcNow,
                 ETag = "*",
-               IsConsolidated = false,
+                IsConsolidated = false,
                 PartitionKey = "ENTRY",
                 RowKey = Guid.NewGuid().ToString(),
                 Type = entry.Type,
@@ -48,7 +48,7 @@ namespace todocompany.Functions.Functions
             };
 
             TableOperation addOperation = TableOperation.Insert(todoEntity);
-            await companyTable.ExecuteAsync(addOperation);
+            await consolidatedTable.ExecuteAsync(addOperation);
 
             string message = "New proccess consolidate in the table";
             log.LogInformation(message);
@@ -129,11 +129,11 @@ namespace todocompany.Functions.Functions
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "Employed id not found."
+                    Message = "Employed is not found."
                 });
             }
 
-            //update employed time
+            //update employed 
             TodoEntity todoEntity = (TodoEntity)findResult.Result;
             todoEntity.IsConsolidated = entry.IsConsolidated;
             if (!string.IsNullOrEmpty(entry.EmployedId))
@@ -144,7 +144,7 @@ namespace todocompany.Functions.Functions
             TableOperation addOperation = TableOperation.Replace(todoEntity);
             await companyTable.ExecuteAsync(addOperation);
 
-            string message = $"Entry: {id}, update in the table.";
+            string message = $"Entry: {id}, update in table.";
             log.LogInformation(message);
 
 
